@@ -1,0 +1,271 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Closer {
+  id        String    @id @default(cuid())
+  name      String
+  email     String?  @unique
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  meetings  Meeting[]
+  proposals Proposal[]
+}
+
+model Client {
+  id        String    @id @default(cuid())
+  name      String
+  email     String?
+  company   String?
+  phone     String?
+  leadName  String?  // Nome do contato/lead
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  meetings  Meeting[]
+  proposals Proposal[]
+}
+
+model Criterion {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  weight      Float    @default(1.0)
+  examples    String   // JSON array de exemplos
+  rules       String   // JSON array de regras
+  goodExamples String? // Exemplos do que é bom
+  badExamples  String? // Exemplos do que é ruim
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model PromptTemplate {
+  id          String   @id @default(cuid())
+  name        String
+  content     String
+  active      Boolean  @default(false)
+  version     Int      @default(1)
+  category    String?  // 'analysis', 'proposal', etc
+  stepKey     String?  // Para templates de proposta: proposal.step1.summary, etc
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  history     String?  // JSON com histórico de versões
+}
+
+model Meeting {
+  id          String   @id @default(cuid())
+  clientId    String
+  closerId    String
+  transcript  String
+  fileName    String?  // Nome do arquivo de transcrição
+  client      Client   @relation(fields: [clientId], references: [id])
+  closer      Closer   @relation(fields: [closerId], references: [id])
+  report      Report?
+  proposal    Proposal?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([closerId])
+  @@index([createdAt])
+}
+
+model Report {
+  id              String   @id @default(cuid())
+  meetingId       String   @unique
+  overallScore    Float
+  criteriaScores  String   // JSON
+  insights        String   // JSON
+  rawModelOutput  String   // JSON
+  dealStatus      String?  // Fechado, Perdido, Aguardando documentos, Fazer proposta, Proposta enviado, Negociação, Parceria, Possível parceria, Follow-up, Sem interesse, Sem retorno, Outros
+  meeting         Meeting  @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([meetingId])
+  @@index([createdAt])
+}
+
+model ModelConfig {
+  id              String   @id @default(cuid())
+  model           String   @default("gpt-5.2")
+  temperature     Float?   // Apenas para reasoning effort = none
+  topP            Float?   // Apenas para reasoning effort = none
+  maxTokens       Int      @default(8000)
+  reasoningEffort String?  // none, low, medium, high, xhigh
+  verbosity       String?  // low, medium, high
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Proposal {
+  id          String        @id @default(cuid())
+  meetingId   String        @unique
+  clientId    String
+  closerId    String
+  status      String        @default("draft") // draft, in_progress, completed
+  meeting     Meeting       @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  client      Client        @relation(fields: [clientId], references: [id])
+  closer      Closer        @relation(fields: [closerId], references: [id])
+  steps       ProposalStep[]
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([meetingId])
+  @@index([clientId])
+  @@index([closerId])
+}
+
+model ProposalStep {
+  id            String   @id @default(cuid())
+  proposalId    String
+  stepNumber    Int      // 1-10
+  stepKey       String   // proposal.step1.summary, proposal.step2.questions, etc
+  initialText   String?  // Texto gerado inicialmente pela IA
+  closerNotes   String?  // Considerações do closer
+  questionsJson String?  // JSON com perguntas (apenas step 2)
+  closerAnswers String?  // Respostas do closer (apenas step 2)
+  finalText     String?  // Versão final após reprocessamento
+  approvedAt    DateTime?
+  approvedBy    String?  // ID do closer que aprovou
+  proposal      Proposal  @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@unique([proposalId, stepNumber])
+  @@index([proposalId])
+  @@index([stepNumber])
+}
+
+model KnowledgeContext {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        String   @default("global") // global, client, project
+  instructions String? // Instruções do contexto (system prompt)
+  tone        String?  // Tom/linguagem
+  tags        String?  // JSON array de tags
+  active      Boolean  @default(true)
+  documents   DocumentContext[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([type])
+  @@index([active])
+}
+
+model KnowledgeDocument {
+  id            String   @id @default(cuid())
+  title         String
+  source        String?  // Fonte do documento
+  content       String?  // Conteúdo em texto (para texto colado)
+  filePath      String?  // Caminho do arquivo (para uploads)
+  fileType      String?  // pdf, docx, txt, md
+  language      String   @default("pt-BR")
+  tags          String?  // JSON array de tags
+  status        String   @default("pending") // pending, processing, indexed, error
+  errorMessage  String?
+  contexts      DocumentContext[]
+  chunks        KnowledgeChunk[]
+  metadata      String?  // JSON com metadados adicionais
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  processedAt  DateTime?
+
+  @@index([status])
+  @@index([fileType])
+}
+
+model DocumentContext {
+  id         String           @id @default(cuid())
+  documentId String
+  contextId  String
+  document   KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  context    KnowledgeContext @relation(fields: [contextId], references: [id], onDelete: Cascade)
+  createdAt  DateTime         @default(now())
+
+  @@unique([documentId, contextId])
+  @@index([documentId])
+  @@index([contextId])
+}
+
+model KnowledgeChunk {
+  id          String   @id @default(cuid())
+  documentId  String
+  chunkIndex  Int      // Índice do chunk no documento
+  content     String   // Texto do chunk
+  embedding   String?  // JSON array de embeddings (vetor)
+  metadata    String?  // JSON com metadados (página, heading, etc.)
+  document    KnowledgeDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@index([documentId])
+  @@index([chunkIndex])
+}
+
+model ReadAiIntegration {
+  id                    String   @id @default(cuid())
+  enabled               Boolean  @default(false)
+  webhookUrl            String?  // URL do webhook gerado
+  webhookSecret         String?  // Secret para validar webhooks
+  apiKey                String?  // API Key do Read.ai (se necessário)
+  autoImport            Boolean  @default(false)
+  importSchedule        String?  // Cron expression ou horário (ex: "0 9 * * *" para 9h diariamente)
+  lastSyncAt            DateTime?
+  lastSyncStatus        String?  // success, error, partial
+  lastSyncError         String?
+  importAllOnFirstSync  Boolean  @default(true) // Importar todas na primeira sincronização
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  imports               ReadAiImport[]
+
+  @@unique([id])
+}
+
+model ReadAiImport {
+  id              String   @id @default(cuid())
+  integrationId   String
+  readAiMeetingId String   // ID da reunião no Read.ai
+  meetingId       String?  // ID da reunião criada no sistema (se importada com sucesso)
+  status           String   @default("pending") // pending, processing, completed, error
+  errorMessage     String?
+  rawData         String?  // JSON com dados brutos recebidos
+  integration     ReadAiIntegration @relation(fields: [integrationId], references: [id], onDelete: Cascade)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([integrationId, readAiMeetingId])
+  @@index([integrationId])
+  @@index([readAiMeetingId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model AppSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  name         String
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

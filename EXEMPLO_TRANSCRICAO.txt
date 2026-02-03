@@ -1,0 +1,45 @@
+Closer: Olá! Bom dia, como você está hoje?
+
+Cliente: Olá! Bom dia, estou bem, obrigado. E você?
+
+Closer: Estou ótimo, obrigado por perguntar! Então, eu queria conversar um pouco sobre os desafios que vocês têm enfrentado com a gestão de vendas. Você poderia me contar um pouco sobre como está o processo atual?
+
+Cliente: Sim, claro. Nós temos uma equipe de vendas de cerca de 15 pessoas, e estamos enfrentando dificuldades para acompanhar todas as oportunidades e garantir que nada caia no esquecimento. É muito trabalho manual.
+
+Closer: Entendo perfeitamente. E qual seria o impacto disso no dia a dia? Quantas oportunidades vocês estimam que podem estar perdendo por falta de acompanhamento adequado?
+
+Cliente: Olha, é difícil quantificar exatamente, mas eu diria que pelo menos 20% das oportunidades não são fechadas por falta de follow-up adequado. Isso representa uma receita significativa que deixamos de capturar.
+
+Closer: Isso é realmente significativo. E como vocês fazem o acompanhamento hoje? Usam planilhas, algum sistema?
+
+Cliente: Usamos principalmente planilhas Excel e algumas ferramentas básicas, mas não temos uma visão consolidada. Cada vendedor gerencia do seu jeito.
+
+Closer: Perfeito. Então, o que eu gostaria de propor é uma solução que automatiza esse acompanhamento, centraliza todas as oportunidades em um único lugar e envia lembretes automáticos para os vendedores sobre follow-ups pendentes. Isso resolveria o problema que vocês estão enfrentando?
+
+Cliente: Sim, parece interessante. Mas quanto isso custaria? E quanto tempo levaria para implementar?
+
+Closer: Ótima pergunta! Vamos por partes. Em relação ao custo, temos planos a partir de R$ 500 por mês para até 20 usuários, o que seria perfeito para o tamanho da equipe de vocês. E sobre a implementação, normalmente leva de 2 a 3 semanas para estar totalmente operacional, incluindo migração dos dados e treinamento da equipe.
+
+Cliente: Hmm, R$ 500 por mês... E vocês têm algum cliente de referência que já está usando isso?
+
+Closer: Sim, temos vários! Posso te enviar alguns cases de sucesso. Uma empresa similar à de vocês, também com equipe de vendas, conseguiu aumentar o fechamento de oportunidades em 35% nos primeiros 3 meses após a implementação. Quer que eu te envie esse case?
+
+Cliente: Sim, gostaria de ver. Mas ainda tenho dúvidas sobre a integração com nosso sistema atual.
+
+Closer: Entendo sua preocupação. Nossa plataforma tem integrações prontas com os principais sistemas do mercado, incluindo ERPs e CRMs. Qual sistema vocês usam atualmente?
+
+Cliente: Usamos o sistema X. Vocês têm integração com ele?
+
+Closer: Sim, temos! Na verdade, é uma das integrações mais populares. Posso te mostrar como funciona em uma demonstração. Que tal agendarmos uma call para semana que vem? Posso mostrar a plataforma funcionando e como seria a integração com o sistema de vocês.
+
+Cliente: Ok, isso seria útil. Que dia e horário funciona para vocês?
+
+Closer: Tenho disponibilidade na terça-feira às 14h ou na quarta-feira às 10h. Qual prefere?
+
+Cliente: Terça às 14h funciona bem para mim.
+
+Closer: Perfeito! Vou enviar um convite para o calendário. E antes disso, vou te enviar o case de sucesso que mencionei e algumas informações adicionais sobre a plataforma. Está tudo certo?
+
+Cliente: Sim, perfeito. Obrigado pela conversa!
+
+Closer: Eu que agradeço! Foi um prazer conversar. Até terça-feira então!
