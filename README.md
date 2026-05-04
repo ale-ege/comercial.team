@@ -397,6 +397,10 @@ Para contribuir:
 
 ## 📖 Documentação Adicional
 
+- **PROMPTS_PROPOSAL.md**: Prompts e regras da geração de propostas (foco em prompts e regras)
+- **LOGICA_CRIACAO_PROPOSAL.md**: Lógica completa e prompts usados na criação de propostas (documentação técnica completa)
+- **PADRAO_VISUAL_ARQUITETURA.md**: Padrão visual e arquitetura do projeto (para replicar em outros projetos)
+- **DOCKER.md**: Como rodar o projeto com Docker
 - **GITHUB_SETUP.md**: Como manter o projeto no GitHub e clonar em outro computador
 - **MIGRACAO_AMBIENTE.md**: Como rodar a aplicação em outro computador (migração de ambiente local)
 - **DOCUMENTACAO_PROJETO.md**: Documentação completa e detalhada do projeto

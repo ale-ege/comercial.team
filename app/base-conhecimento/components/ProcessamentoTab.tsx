@@ -144,7 +144,7 @@ export default function ProcessamentoTab() {
                   label: `${doc.title} (${doc.status})`,
                 })),
               ]}
-              disabled={selectedContextId && documents.length === 0}
+              disabled={Boolean(selectedContextId) && documents.length === 0}
             />
             {selectedContextId && documents.length === 0 && (
               <p className="text-xs text-gray-500 mt-1">

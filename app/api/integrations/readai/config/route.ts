@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
+import type { ReadAiIntegration } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { z } from 'zod'
 
@@ -7,6 +8,7 @@ const configSchema = z.object({
   autoImport: z.boolean().optional(),
   importSchedule: z.string().optional().nullable(),
   importAllOnFirstSync: z.boolean().optional(),
+  webhookUrl: z.string().optional().nullable(),
 })
 
 function getWebhookBaseUrl(): string {
@@ -17,17 +19,25 @@ function getWebhookBaseUrl(): string {
   if (process.env.VERCEL_URL) {
     return `https://${process.env.VERCEL_URL}`
   }
-  return 'http://localhost:3000'
+  // Fallback para ambiente local com túnel público (Read.ai precisa de URL pública)
+  return 'https://unstentoriously-imperturbably-sabina.ngrok-free.dev'
 }
 
-function ensureWebhookUrl(config: { id: string; webhookUrl: string | null }) {
-  if (config.webhookUrl) return config
+async function ensureWebhookUrl(
+  config: ReadAiIntegration
+): Promise<ReadAiIntegration> {
   const baseUrl = getWebhookBaseUrl()
+  const expectedWebhookUrl = `${baseUrl}/api/integrations/readai/webhook`
+
+  // Não sobrescrever URL customizada definida manualmente pelo usuário
+  if (config.webhookUrl && config.webhookUrl !== expectedWebhookUrl) return config
+  if (config.webhookUrl === expectedWebhookUrl) return config
+
   const webhookSecret = `readai_${Date.now()}_${Math.random().toString(36).substring(7)}`
   return prisma.readAiIntegration.update({
     where: { id: config.id },
     data: {
-      webhookUrl: `${baseUrl}/api/integrations/readai/webhook`,
+      webhookUrl: expectedWebhookUrl,
       webhookSecret,
     },
   })
@@ -47,10 +57,8 @@ export async function GET(request: NextRequest) {
       })
     }
 
-    // Garantir que a URL do webhook exista (gerar se estiver vazia)
-    if (!config.webhookUrl) {
-      config = await ensureWebhookUrl(config)
-    }
+    // Garantir que a URL do webhook exista e esteja atualizada
+    config = await ensureWebhookUrl(config)
 
     return NextResponse.json({
       config: {
@@ -100,14 +108,13 @@ export async function PUT(request: NextRequest) {
           autoImport: data.autoImport !== undefined ? data.autoImport : config.autoImport,
           importSchedule: data.importSchedule !== undefined ? data.importSchedule : config.importSchedule,
           importAllOnFirstSync: data.importAllOnFirstSync !== undefined ? data.importAllOnFirstSync : config.importAllOnFirstSync,
+          webhookUrl: data.webhookUrl !== undefined ? (data.webhookUrl || null) : config.webhookUrl,
         },
       })
     }
 
-    // Gerar URL do webhook se não existir
-    if (!config.webhookUrl) {
-      config = await ensureWebhookUrl(config)
-    }
+    // Garantir URL atualizada conforme base URL atual
+    config = await ensureWebhookUrl(config)
 
     return NextResponse.json({
       config: {

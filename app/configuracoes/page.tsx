@@ -1011,7 +1011,7 @@ function ReadAiTab() {
               <div className="flex gap-2">
                 <Input
                   value={config.webhookUrl || 'Gerando...'}
-                  readOnly
+                  onChange={(e) => setConfig({ ...config, webhookUrl: e.target.value })}
                   className="font-mono text-sm"
                 />
                 <Button variant="secondary" onClick={copyWebhookUrl}>
@@ -1019,7 +1019,7 @@ function ReadAiTab() {
                 </Button>
               </div>
               <p className="text-xs text-gray-500 mt-2">
-                Configure esta URL no painel do Read.ai em Analytics → Integrations → Webhooks
+                Você pode editar esta URL manualmente e salvar. Configure-a no Read.ai em Analytics → Integrations → Webhooks.
               </p>
             </div>
 

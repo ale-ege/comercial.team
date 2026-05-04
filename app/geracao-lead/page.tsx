@@ -37,6 +37,14 @@ function getWeekLabel(monday: Date): string {
   return `${format(monday, 'dd/MM/yyyy', { locale: ptBR })} - ${format(sunday, 'dd/MM/yyyy', { locale: ptBR })}`
 }
 
+// Função para ordenar semanas da mais recente para a mais antiga (weekId no formato YYYY-Www)
+function sortEntriesDesc(entries: Entry[]): Entry[] {
+  return [...entries].sort((a, b) => {
+    // Comparar weekId (formato YYYY-Www) em ordem decrescente
+    return b.weekId.localeCompare(a.weekId)
+  })
+}
+
 export default function GeracaoLeadPage() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,7 +61,8 @@ export default function GeracaoLeadPage() {
     fetch('/api/settings/geracao-lead')
       .then((res) => res.json())
       .then((data) => {
-        setEntries((data.entries || []).map((e: Entry) => ({ ...e, visitas: e.visitas ?? 0 })))
+        const mapped = (data.entries || []).map((e: Entry) => ({ ...e, visitas: e.visitas ?? 0 }))
+        setEntries(sortEntriesDesc(mapped))
       })
       .catch(() => setMessage({ type: 'error', text: 'Erro ao carregar dados.' }))
       .finally(() => setLoading(false))
@@ -72,7 +81,7 @@ export default function GeracaoLeadPage() {
     }
     const total = Math.max(0, Number(newTotal) || 0)
     const visitas = Math.max(0, Number(newVisitas) || 0)
-    setEntries((prev) => [...prev, { weekId, label, total, visitas }])
+    setEntries((prev) => sortEntriesDesc([...prev, { weekId, label, total, visitas }]))
     setNewTotal('')
     setNewVisitas('')
     setMessage(null)
@@ -114,7 +123,10 @@ export default function GeracaoLeadPage() {
         setMessage({ type: 'error', text: msg })
         return
       }
-      if (data.entries) setEntries(data.entries.map((e: Entry) => ({ ...e, visitas: e.visitas ?? 0 })))
+      if (data.entries) {
+        const mapped = data.entries.map((e: Entry) => ({ ...e, visitas: e.visitas ?? 0 }))
+        setEntries(sortEntriesDesc(mapped))
+      }
       setMessage({ type: 'success', text: 'Dados salvos com sucesso.' })
     } catch (err: any) {
       setMessage({ type: 'error', text: err?.message || 'Erro ao salvar. Verifique a conexão.' })

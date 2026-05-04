@@ -217,8 +217,8 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Buscar documento completo
-    const fullDocument = await prisma.knowledgeDocument.findUnique({
+    // Buscar documento completo (fallback para o objeto criado se findUnique falhar)
+    const fetchedDoc = await prisma.knowledgeDocument.findUnique({
       where: { id: document.id },
       include: {
         contexts: {
@@ -230,13 +230,27 @@ export async function POST(request: NextRequest) {
       },
     })
 
+    const fullDocument =
+      fetchedDoc ??
+      ({
+        ...document,
+        contexts: [],
+        chunks: [],
+      } as any)
+
+    const documentTags = fullDocument.tags ? JSON.parse(fullDocument.tags) : []
+    const metadata = fullDocument.metadata ? JSON.parse(fullDocument.metadata) : null
+    const documentContextIds =
+      fullDocument.contexts?.map((dc: any) => dc.contextId) || []
+    const chunkCount = fullDocument.chunks?.length ?? 0
+
     return NextResponse.json({
       document: {
         ...fullDocument,
-        tags: fullDocument?.tags ? JSON.parse(fullDocument.tags) : [],
-        metadata: fullDocument?.metadata ? JSON.parse(fullDocument.metadata) : null,
-        contextIds: fullDocument?.contexts.map((dc) => dc.contextId) || [],
-        chunkCount: fullDocument?.chunks.length || 0,
+        tags: documentTags,
+        metadata,
+        contextIds: documentContextIds,
+        chunkCount,
       },
     })
   } catch (error: any) {

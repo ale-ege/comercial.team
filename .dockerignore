@@ -1,0 +1,29 @@
+# Dependências e build
+node_modules
+.next
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git e IDE
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+
+# Documentação (opcional; remova se quiser na imagem)
+*.md
+!README.md
+
+# Banco local (será criado no container/volume)
+prisma/*.db
+prisma/*.db-journal
+
+# Outros
+.DS_Store
+.vercel
+coverage
+*.tsbuildinfo
+next-env.d.ts
+uploads

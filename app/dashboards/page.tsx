@@ -763,8 +763,11 @@ export default function DashboardsPage() {
                       <tbody className="bg-white divide-y divide-gray-200">
                         {stats.heatmap.map((row: any, rowIdx: number) => {
                           // Criar um mapa dos critérios desta linha para acesso rápido
-                          const criteriaMap = new Map(
-                            (row.criteria || []).map((c: any) => [c.criterion, c.average])
+                          const criteriaMap = new Map<string, number>(
+                            (row.criteria || []).map((c: any) => [
+                              c.criterion as string,
+                              Number(c.average) || 0,
+                            ])
                           )
                           
                           return (
@@ -773,7 +776,7 @@ export default function DashboardsPage() {
                                 {row.closer || 'N/A'}
                               </td>
                               {allCriteriaNames.map((criterionName: string, idx: number) => {
-                                const average = criteriaMap.get(criterionName) || 0
+                                const average = criteriaMap.get(criterionName) ?? 0
                                 const intensity = Math.min(average / 10, 1)
                                 const bgColor = `rgba(59, 130, 246, ${intensity * 0.3})`
                                 

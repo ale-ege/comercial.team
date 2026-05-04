@@ -41,6 +41,7 @@ export default function SidebarLayout({ children, currentModule }: SidebarLayout
     { href: '/dashboards', label: 'Dashboards', icon: '📈' },
     { href: '/funil-vendas', label: 'Funil de Vendas', icon: '🔻' },
     { href: '/geracao-lead', label: 'Geração de Lead', icon: '📥' },
+    { href: '/indicadores-geracao-lead', label: 'Indicadores Geração de Lead', icon: '📊' },
   ]
 
   const configuracoesItems = [

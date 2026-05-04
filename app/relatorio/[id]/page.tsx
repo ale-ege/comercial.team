@@ -8,6 +8,7 @@ import SidebarLayout from '@/components/SidebarLayout'
 import Button from '@/components/Button'
 import Input from '@/components/Input'
 import Textarea from '@/components/Textarea'
+import Modal from '@/components/Modal'
 import {
   BarChart,
   Bar,
@@ -38,6 +39,7 @@ export default function RelatorioPage() {
   const [answer, setAnswer] = useState<string | null>(null)
   const [loadingAnswer, setLoadingAnswer] = useState(false)
   const [answerError, setAnswerError] = useState<string | null>(null)
+  const [askModalOpen, setAskModalOpen] = useState(false)
 
   useEffect(() => {
     fetch(`/api/reports/${params.id}`)
@@ -180,26 +182,246 @@ export default function RelatorioPage() {
           </div>
         )}
 
-        {/* Resumo Executivo - Primeira Página: Nota + Resumo + Gráficos */}
+        {/* Resumo Executivo - Primeira Página: Quadro único Nota + Informações + Resumo + Gráficos */}
         <div className="print-first-page-content">
-          {/* Nota Geral */}
-          <div className="bg-white shadow rounded-lg p-6 mb-6 print-card print-keep-together print:p-1 print:mb-1">
-            <div className="text-center">
-              <h2 className="text-2xl font-semibold text-gray-700 mb-2 print:text-xs print:mb-0">
-                Nota Geral
-              </h2>
-              <div className="print-report-score text-6xl font-bold text-blue-600 print:text-xl">
-                {report.overallScore.toFixed(1)}
+          {/* Quadro único: Nota Geral em destaque + Informações Adicionais compactas */}
+          <div className="bg-white shadow rounded-lg overflow-hidden mb-6 print-card print-keep-together print:mb-3">
+            {/* Destaque: Nota Geral - estilo inline garante fundo azul mesmo se CSS carregar depois */}
+            <div
+              className="px-6 py-4 print:py-2"
+              style={{
+                background: 'linear-gradient(to right, #2563eb, #1d4ed8)',
+                color: '#ffffff',
+              }}
+            >
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <span className="text-sm font-medium print:text-xs" style={{ color: 'rgba(255,255,255,0.9)' }}>
+                  Nota Geral
+                </span>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-4xl font-bold print:text-2xl print:font-bold" style={{ color: '#ffffff' }}>
+                    {report.overallScore.toFixed(1)}
+                  </span>
+                  <span className="text-sm print:text-xs" style={{ color: 'rgba(255,255,255,0.8)' }}>
+                    de 100 pontos
+                  </span>
+                </div>
               </div>
-              <div className="text-gray-500 mt-2 print:text-xs print:mt-0">de 100 pontos</div>
+            </div>
+
+            {/* Informações Adicionais compactas */}
+            <div className="p-4 print:p-3">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 print:grid-cols-4 print:gap-2 print:text-xs">
+                {report.metadata?.next_steps_clarity !== undefined && (
+                  <div className="border border-gray-100 rounded-lg px-3 py-2 print:py-1">
+                    <div className="text-gray-500 text-xs print:text-[10px]">Clareza dos Próximos Passos</div>
+                    <div className="font-semibold text-gray-900 print:text-xs">{report.metadata.next_steps_clarity}/10</div>
+                  </div>
+                )}
+                {report.metadata?.objections_quality !== undefined && (
+                  <div className="border border-gray-100 rounded-lg px-3 py-2 print:py-1">
+                    <div className="text-gray-500 text-xs print:text-[10px]">Qualidade Objeções</div>
+                    <div className="font-semibold text-gray-900 print:text-xs">{report.metadata.objections_quality}/10</div>
+                  </div>
+                )}
+                {report.metadata?.talk_ratio_estimate !== undefined && (
+                  <div className="border border-gray-100 rounded-lg px-3 py-2 print:py-1">
+                    <div className="text-gray-500 text-xs print:text-[10px]">Proporção de Fala (Closer)</div>
+                    <div className="font-semibold text-gray-900 print:text-xs">{(report.metadata.talk_ratio_estimate * 100).toFixed(0)}%</div>
+                  </div>
+                )}
+                {report.metadata?.client_engagement !== undefined && (
+                  <div className="border border-gray-100 rounded-lg px-3 py-2 print:py-1">
+                    <div className="text-gray-500 text-xs print:text-[10px]">Engajamento do Cliente</div>
+                    <div className="font-semibold text-gray-900 print:text-xs">{report.metadata.client_engagement}/10</div>
+                  </div>
+                )}
+              </div>
+
+              {report.metadata?.risks && report.metadata.risks.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-100 print:mt-2 print:pt-2">
+                  <h4 className="text-xs font-semibold text-red-700 mb-1.5 print:mb-1 print:text-[10px]">Riscos Identificados</h4>
+                  <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5 print:text-[10px]">
+                    {report.metadata.risks.map((risk: string, i: number) => (
+                      <li key={i}>{risk}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
           </div>
 
           {/* Resumo */}
           <div className="bg-white shadow rounded-lg p-6 mb-6 print-card print-keep-together print:p-1 print:mb-1">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 print:text-xs print:mb-0.5">Resumo</h2>
-            <p className="text-gray-700 print:text-xs leading-tight">{report.insights?.summary}</p>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0 flex-1">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 print:text-xs print:mb-0.5">Resumo</h2>
+                <p className="text-gray-700 print:text-xs leading-tight">{report.insights?.summary}</p>
+              </div>
+              {/* Ícone para abrir pergunta sobre a reunião */}
+              <button
+                type="button"
+                onClick={() => setAskModalOpen(true)}
+                className="flex-shrink-0 no-print print:hidden flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-100 hover:bg-blue-200 text-blue-600 hover:text-blue-800 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                title="Faça uma pergunta sobre a reunião"
+                aria-label="Faça uma pergunta sobre a reunião"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 sm:h-6 sm:w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </button>
+            </div>
           </div>
+
+          {/* Modal: Faça uma Pergunta sobre a Reunião */}
+          <Modal
+            isOpen={askModalOpen}
+            onClose={() => setAskModalOpen(false)}
+            title="Faça uma Pergunta sobre a Reunião"
+            size="md"
+          >
+            <p className="text-sm text-gray-600 mb-4">
+              Digite uma pergunta e nossa IA analisará a transcrição completa para fornecer uma resposta detalhada.
+            </p>
+            <div className="space-y-4">
+              <Input
+                label="Sua Pergunta"
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                placeholder="Ex: Quais foram os principais pontos de objeção levantados pelo cliente?"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey) {
+                    handleAskQuestion()
+                  }
+                }}
+              />
+
+              <Button 
+                onClick={handleAskQuestion} 
+                disabled={loadingAnswer || !question.trim()}
+              >
+                {loadingAnswer ? 'Processando...' : 'Enviar Pergunta'}
+              </Button>
+
+              {answerError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                  <p className="text-red-800 text-sm">{answerError}</p>
+                </div>
+              )}
+
+              {answer && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <h3 className="text-sm font-semibold text-blue-900 mb-2">Resposta:</h3>
+                  <div className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed">
+                    {answer}
+                  </div>
+                  <div className="mt-3 pt-3 border-t border-blue-200">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnswer(null)
+                        setQuestion('')
+                      }}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline"
+                    >
+                      Fazer Nova Pergunta
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-gray-500 mt-3">
+              💡 Dica: Pressione Ctrl+Enter para enviar a pergunta rapidamente
+            </p>
+          </Modal>
+
+          {/* Compromissos da Reunião - logo após o Resumo */}
+          {report.insights?.commitments &&
+            (report.insights.commitments.closer_actions?.length > 0 ||
+              report.insights.commitments.lead_actions?.length > 0) && (
+              <div className="bg-white shadow rounded-lg p-6 mb-6 print-card print-keep-together print:p-3 print:mb-3">
+                <h2 className="text-xl font-semibold text-gray-900 mb-4 print:text-base print:mb-2">
+                  Compromissos da Reunião
+                </h2>
+                <p className="text-sm text-gray-600 mb-4 print:text-xs">
+                  Ações acordadas durante a reunião que devem ser executadas
+                </p>
+
+                {report.insights.commitments.closer_actions &&
+                  report.insights.commitments.closer_actions.length > 0 && (
+                    <div className="mb-6 print:mb-4">
+                      <h3 className="text-lg font-semibold text-blue-700 mb-3 print:text-sm print:mb-2">
+                        Ações do Closer
+                      </h3>
+                      <div className="space-y-3 print:space-y-2">
+                        {report.insights.commitments.closer_actions.map(
+                          (commitment: any, index: number) => (
+                            <div
+                              key={index}
+                              className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r print:py-1"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-900 print:text-xs">
+                                    {commitment.action}
+                                  </p>
+                                  {commitment.due_when && (
+                                    <p className="text-xs text-gray-600 mt-1 print:text-xs">
+                                      Prazo: {commitment.due_when}
+                                    </p>
+                                  )}
+                                  {commitment.evidence_quote && (
+                                    <p className="text-xs text-gray-500 italic mt-2 print:text-xs">
+                                      "{commitment.evidence_quote}"
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                {report.insights.commitments.lead_actions &&
+                  report.insights.commitments.lead_actions.length > 0 && (
+                    <div>
+                      <h3 className="text-lg font-semibold text-green-700 mb-3 print:text-sm print:mb-2">
+                        Ações do Cliente
+                      </h3>
+                      <div className="space-y-3 print:space-y-2">
+                        {report.insights.commitments.lead_actions.map(
+                          (commitment: any, index: number) => (
+                            <div
+                              key={index}
+                              className="border-l-4 border-green-500 pl-4 py-2 bg-green-50 rounded-r print:py-1"
+                            >
+                              <div className="flex items-start justify-between">
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium text-gray-900 print:text-xs">
+                                    {commitment.action}
+                                  </p>
+                                  {commitment.due_when && (
+                                    <p className="text-xs text-gray-600 mt-1 print:text-xs">
+                                      Prazo: {commitment.due_when}
+                                    </p>
+                                  )}
+                                  {commitment.evidence_quote && (
+                                    <p className="text-xs text-gray-500 italic mt-2 print:text-xs">
+                                      "{commitment.evidence_quote}"
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
 
           {/* Gráficos */}
           <div className="print-charts-group">
@@ -405,220 +627,6 @@ export default function RelatorioPage() {
             </div>
           )}
 
-        {/* Compromissos */}
-        {report.insights?.commitments && (
-          (report.insights.commitments.closer_actions?.length > 0 ||
-            report.insights.commitments.lead_actions?.length > 0) && (
-            <div className="bg-white shadow rounded-lg p-6 mb-6 print-card print-keep-together print:p-3 print:mb-3">
-              <h2 className="text-xl font-semibold text-gray-900 mb-4 print:text-base print:mb-2">
-                Compromissos da Reunião
-              </h2>
-              <p className="text-sm text-gray-600 mb-4 print:text-xs">
-                Ações acordadas durante a reunião que devem ser executadas
-              </p>
-
-              {/* Compromissos do Closer */}
-              {report.insights.commitments.closer_actions &&
-                report.insights.commitments.closer_actions.length > 0 && (
-                  <div className="mb-6 print:mb-4">
-                    <h3 className="text-lg font-semibold text-blue-700 mb-3 print:text-sm print:mb-2">
-                      Ações do Closer
-                    </h3>
-                    <div className="space-y-3 print:space-y-2">
-                      {report.insights.commitments.closer_actions.map(
-                        (commitment: any, index: number) => (
-                          <div
-                            key={index}
-                            className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 rounded-r print:py-1"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900 print:text-xs">
-                                  {commitment.action}
-                                </p>
-                                {commitment.due_when && (
-                                  <p className="text-xs text-gray-600 mt-1 print:text-xs">
-                                    Prazo: {commitment.due_when}
-                                  </p>
-                                )}
-                                {commitment.evidence_quote && (
-                                  <p className="text-xs text-gray-500 italic mt-2 print:text-xs">
-                                    "{commitment.evidence_quote}"
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-
-              {/* Compromissos do Lead/Cliente */}
-              {report.insights.commitments.lead_actions &&
-                report.insights.commitments.lead_actions.length > 0 && (
-                  <div>
-                    <h3 className="text-lg font-semibold text-green-700 mb-3 print:text-sm print:mb-2">
-                      Ações do Cliente
-                    </h3>
-                    <div className="space-y-3 print:space-y-2">
-                      {report.insights.commitments.lead_actions.map(
-                        (commitment: any, index: number) => (
-                          <div
-                            key={index}
-                            className="border-l-4 border-green-500 pl-4 py-2 bg-green-50 rounded-r print:py-1"
-                          >
-                            <div className="flex items-start justify-between">
-                              <div className="flex-1">
-                                <p className="text-sm font-medium text-gray-900 print:text-xs">
-                                  {commitment.action}
-                                </p>
-                                {commitment.due_when && (
-                                  <p className="text-xs text-gray-600 mt-1 print:text-xs">
-                                    Prazo: {commitment.due_when}
-                                  </p>
-                                )}
-                                {commitment.evidence_quote && (
-                                  <p className="text-xs text-gray-500 italic mt-2 print:text-xs">
-                                    "{commitment.evidence_quote}"
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        )
-                      )}
-                    </div>
-                  </div>
-                )}
-            </div>
-          )
-        )}
-
-        {/* Metadados */}
-        {report.metadata && (
-          <div className="bg-white shadow rounded-lg p-6 print-card print-keep-together print:p-3">
-            <h2 className="text-xl font-semibold text-gray-900 mb-4 print:text-base print:mb-2">
-              Informações Adicionais
-            </h2>
-            <div className="grid grid-cols-2 gap-4 print:gap-2 print:text-xs">
-              {report.metadata.next_steps_clarity !== undefined && (
-                <div>
-                  <span className="text-sm text-gray-500 print:text-xs">
-                    Clareza dos Próximos Passos:
-                  </span>
-                  <div className="text-lg font-semibold print:text-sm">
-                    {report.metadata.next_steps_clarity}/10
-                  </div>
-                </div>
-              )}
-              {report.metadata.objections_quality !== undefined && (
-                <div>
-                  <span className="text-sm text-gray-500 print:text-xs">
-                    Qualidade do Tratamento de Objeções:
-                  </span>
-                  <div className="text-lg font-semibold print:text-sm">
-                    {report.metadata.objections_quality}/10
-                  </div>
-                </div>
-              )}
-              {report.metadata.talk_ratio_estimate !== undefined && (
-                <div>
-                  <span className="text-sm text-gray-500 print:text-xs">
-                    Proporção de Fala (Closer):
-                  </span>
-                  <div className="text-lg font-semibold print:text-sm">
-                    {(report.metadata.talk_ratio_estimate * 100).toFixed(0)}%
-                  </div>
-                </div>
-              )}
-              {report.metadata.client_engagement !== undefined && (
-                <div>
-                  <span className="text-sm text-gray-500 print:text-xs">
-                    Engajamento do Cliente:
-                  </span>
-                  <div className="text-lg font-semibold print:text-sm">
-                    {report.metadata.client_engagement}/10
-                  </div>
-                </div>
-              )}
-            </div>
-            {report.metadata.risks && report.metadata.risks.length > 0 && (
-              <div className="mt-4 print:mt-2">
-                <h4 className="text-sm font-semibold text-red-700 mb-2 print:text-xs print:mb-1">
-                  Riscos Identificados:
-                </h4>
-                <ul className="list-disc list-inside text-sm text-gray-700 print:text-xs">
-                  {report.metadata.risks.map((risk: string, i: number) => (
-                    <li key={i}>{risk}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Campo de Pergunta */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6 print-card print-keep-together print:p-3 print:mb-3 no-print print:hidden">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4 print:text-base print:mb-2">
-            Faça uma Pergunta sobre a Reunião
-          </h2>
-          <p className="text-sm text-gray-600 mb-4 print:text-xs">
-            Digite uma pergunta e nossa IA analisará a transcrição completa para fornecer uma resposta detalhada.
-          </p>
-
-          <div className="space-y-4">
-            <Input
-              label="Sua Pergunta"
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              placeholder="Ex: Quais foram os principais pontos de objeção levantados pelo cliente?"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.ctrlKey) {
-                  handleAskQuestion()
-                }
-              }}
-            />
-
-            <Button 
-              onClick={handleAskQuestion} 
-              disabled={loadingAnswer || !question.trim()}
-            >
-              {loadingAnswer ? 'Processando...' : 'Enviar Pergunta'}
-            </Button>
-
-            {answerError && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <p className="text-red-800 text-sm">{answerError}</p>
-              </div>
-            )}
-
-            {answer && (
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-semibold text-blue-900 mb-2">Resposta:</h3>
-                <div className="text-gray-800 whitespace-pre-wrap text-sm leading-relaxed">
-                  {answer}
-                </div>
-                <div className="mt-3 pt-3 border-t border-blue-200">
-                  <button
-                    onClick={() => {
-                      setAnswer(null)
-                      setQuestion('')
-                    }}
-                    className="text-xs text-blue-600 hover:text-blue-800 underline"
-                  >
-                    Fazer Nova Pergunta
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-
-          <p className="text-xs text-gray-500 mt-3">
-            💡 Dica: Pressione Ctrl+Enter para enviar a pergunta rapidamente
-          </p>
-        </div>
       </div>
     </SidebarLayout>
   )

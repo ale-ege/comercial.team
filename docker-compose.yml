@@ -1,0 +1,17 @@
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Banco SQLite em diretório montado (persistente)
+      DATABASE_URL: "file:./data/dev.db"
+    volumes:
+      # Persistir apenas os dados do banco (schema/seed ficam na imagem)
+      - prisma_data:/app/data
+    restart: unless-stopped
+
+volumes:
+  prisma_data:
