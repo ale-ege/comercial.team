@@ -27,6 +27,7 @@ interface Proposal {
   meetingId: string
   status: string
   steps: ProposalStep[]
+  updatedAt?: string | Date | null
   meeting: {
     client: { name: string; company?: string | null }
     closer: { name: string }
@@ -342,13 +343,15 @@ export default function PropostasPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {new Date(prop.updatedAt).toLocaleDateString('pt-BR', {
+                          {prop.updatedAt
+                            ? new Date(prop.updatedAt).toLocaleString('pt-BR', {
                             day: '2-digit',
                             month: '2-digit',
                             year: 'numeric',
                             hour: '2-digit',
                             minute: '2-digit',
-                          })}
+                            })
+                            : '-'}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                           <button
