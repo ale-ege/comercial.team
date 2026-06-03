@@ -49,3 +49,12 @@ node_modules/
 data/
 *.db
 prisma/dev.db
+
+
+.idea/
+.env
+node_modules/
+.next/
+data/
+*.db
+prisma/dev.db
