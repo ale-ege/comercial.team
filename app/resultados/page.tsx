@@ -28,6 +28,21 @@ interface Resultado {
   createdAt: string
 }
 
+const MESES_OPCOES = [
+  { value: '1', label: 'Janeiro' },
+  { value: '2', label: 'Fevereiro' },
+  { value: '3', label: 'Março' },
+  { value: '4', label: 'Abril' },
+  { value: '5', label: 'Maio' },
+  { value: '6', label: 'Junho' },
+  { value: '7', label: 'Julho' },
+  { value: '8', label: 'Agosto' },
+  { value: '9', label: 'Setembro' },
+  { value: '10', label: 'Outubro' },
+  { value: '11', label: 'Novembro' },
+  { value: '12', label: 'Dezembro' },
+]
+
 const STATUS_OPCOES = [
   { value: 'Fechado', label: 'Venda', cor: 'bg-green-100 text-green-800 border-green-300' },
   { value: 'Perdido', label: 'Perdido', cor: 'bg-red-100 text-red-800 border-red-300' },
@@ -69,6 +84,10 @@ export default function ResultadosPage() {
   const [filtroEmpresa, setFiltroEmpresa] = useState('')
   const [filtroCloserId, setFiltroCloserId] = useState('')
   const [filtroStatus, setFiltroStatus] = useState('')
+  const currentYear = new Date().getFullYear()
+  const yearOptions = Array.from({ length: 11 }, (_, i) => String(currentYear - i))
+  const [filtroAno, setFiltroAno] = useState('')
+  const [filtroMes, setFiltroMes] = useState('')
   const [openFileNameId, setOpenFileNameId] = useState<string | null>(null)
   const router = useRouter()
 
@@ -79,7 +98,7 @@ export default function ResultadosPage() {
 
   useEffect(() => {
     loadResultados()
-  }, [filtroEmpresa, filtroCloserId, filtroStatus])
+  }, [filtroEmpresa, filtroCloserId, filtroStatus, filtroAno, filtroMes])
 
   const loadClosers = async () => {
     try {
@@ -108,6 +127,10 @@ export default function ResultadosPage() {
       if (filtroEmpresa) params.set('company', filtroEmpresa)
       if (filtroCloserId) params.set('closerId', filtroCloserId)
       if (filtroStatus) params.set('dealStatus', filtroStatus)
+      if (filtroAno) {
+        params.set('year', filtroAno)
+        if (filtroMes) params.set('month', filtroMes)
+      }
       const res = await fetch(`/api/resultados?${params.toString()}`)
       
       if (!res.ok) {
@@ -310,6 +333,36 @@ export default function ResultadosPage() {
               options={[
                 { value: '', label: 'Todos' },
                 ...STATUS_OPCOES.map((s) => ({ value: s.value, label: s.label })),
+              ]}
+            />
+          </div>
+          <div className="w-36">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Ano
+            </label>
+            <Select
+              value={filtroAno}
+              onChange={(e) => {
+                setFiltroAno(e.target.value)
+                if (!e.target.value) setFiltroMes('')
+              }}
+              options={[
+                { value: '', label: 'Todos' },
+                ...yearOptions.map((y) => ({ value: y, label: y })),
+              ]}
+            />
+          </div>
+          <div className="w-44">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Mês
+            </label>
+            <Select
+              value={filtroMes}
+              onChange={(e) => setFiltroMes(e.target.value)}
+              disabled={!filtroAno}
+              options={[
+                { value: '', label: filtroAno ? 'Todo o ano' : 'Selecione o ano' },
+                ...MESES_OPCOES.map((m) => ({ value: m.value, label: m.label })),
               ]}
             />
           </div>

@@ -7,11 +7,31 @@ export async function GET(request: NextRequest) {
     const company = searchParams.get('company')?.trim() || ''
     const closerId = searchParams.get('closerId')?.trim() || ''
     const dealStatus = searchParams.get('dealStatus')?.trim() || ''
+    const yearParam = searchParams.get('year')?.trim() || ''
+    const monthParam = searchParams.get('month')?.trim() || ''
 
-    // Filtro por closer no banco; empresa e status são filtrados em memória
-    const whereMeeting: { closerId?: string } = {}
+    // Filtro por closer e período no banco; empresa e status são filtrados em memória
+    const whereMeeting: {
+      closerId?: string
+      createdAt?: { gte: Date; lte: Date }
+    } = {}
     if (closerId) {
       whereMeeting.closerId = closerId
+    }
+
+    const year = yearParam ? parseInt(yearParam, 10) : NaN
+    if (!Number.isNaN(year) && year >= 1900 && year <= 2100) {
+      const month = monthParam ? parseInt(monthParam, 10) : NaN
+      const hasMonth = !Number.isNaN(month) && month >= 1 && month <= 12
+      if (hasMonth) {
+        const start = new Date(year, month - 1, 1, 0, 0, 0, 0)
+        const end = new Date(year, month, 0, 23, 59, 59, 999)
+        whereMeeting.createdAt = { gte: start, lte: end }
+      } else {
+        const start = new Date(year, 0, 1, 0, 0, 0, 0)
+        const end = new Date(year, 11, 31, 23, 59, 59, 999)
+        whereMeeting.createdAt = { gte: start, lte: end }
+      }
     }
 
     const meetings = await prisma.meeting.findMany({

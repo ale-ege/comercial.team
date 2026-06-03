@@ -1,17 +1,13 @@
 services:
-  app:
+  agente-comercial:
     build: .
-    ports:
-      - "3000:3000"
-    env_file:
-      - .env
-    environment:
-      # Banco SQLite em diretório montado (persistente)
-      DATABASE_URL: "file:./data/dev.db"
-    volumes:
-      # Persistir apenas os dados do banco (schema/seed ficam na imagem)
-      - prisma_data:/app/data
+    container_name: agente-comercial
     restart: unless-stopped
-
-volumes:
-  prisma_data:
+    ports:
+      - "43872:3000"
+    environment:
+      NODE_ENV: "production"
+      DATABASE_URL: "file:/app/data/dev.db"
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"
+    volumes:
+      - /mnt/user/appdata/agente-comercial/data:/app/data

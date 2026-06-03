@@ -41,3 +41,11 @@ next-env.d.ts
 
 # uploads
 /uploads/
+
+
+.env
+node_modules/
+.next/
+data/
+*.db
+prisma/dev.db
